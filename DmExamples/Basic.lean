@@ -11,45 +11,22 @@ def ack : ℕ → ℕ → ℕ
 termination_by x y => (x, y)
 #eval ack 3 2
 
-
 def ack_mset : List ℕ → Multiset (ℕ × ℕ)
   | []  => {}
   | [_] => {}
   | z :: y :: L => (y,z) ::ₘ Multiset.ofList (L.map (λ x => (x+1, 0)))
 
--- #eval ack_mset [1,2,3]
-
-
 def lt_ackstack (L1 : List ℕ) (L2 : List ℕ) :=
   @Multiset.IsDershowitzMannaLT _ (Prod.Lex.preorder _ _) (ack_mset L1) (ack_mset L2)
-
--- def lt_Sequent (X : Sequent) (Y : Sequent) := Multiset.IsDershowitzMannaLT (node_to_multiset X) (node_to_multiset Y)
--- def lt_MulPairs(P1 : Multiset (ℕ × ℕ)) (P2 : Multiset (ℕ × ℕ)) := Multiset.IsDershowitzMannaLT P1 P2
-
--- #eval lt_MulPair {(0,1)} {(0,0)}
-
--- def lt_MulPair' (P1 P2 : Multiset (ℕ × ℕ)) : Prop :=
---   Multiset.Lex (Prod.Lex (· < ·) (· < ·)) P1 P2
-
--- #print Prod.Lex.instIsWellFounded
 
 -- Define lexicographic order on (ℕ × ℕ)
 instance : WellFoundedLT (ℕ × ℕ) := by
   exact Prod.wellFoundedLT'
 
-  --rel := Prod.Lex (· < ·) (· < ·)  -- Lexicographic order
-  --wf := sorry
-
--- instance Formula.WellFoundedLT : WellFoundedLT Formula := by
---   constructor
---   simp_all only [instLTFormula, Nat.lt_eq]
---   exact @WellFounded.onFun Formula Nat Nat.lt lmOfFormula Nat.lt_wfRel.wf
-
 -- This is where the `wellFounded_isDershowitzMannaLT` theorem is used.
 instance : WellFoundedRelation (List ℕ) where
   rel := lt_ackstack
   wf  := InvImage.wf ack_mset (Multiset.wellFounded_isDershowitzMannaLT)
-#check InvImage
 
 -- Asking whether it terminates is an instance of the halting problem, which is undecidable in general.
 def ackstack : List Nat → Nat
@@ -165,9 +142,7 @@ decreasing_by
               simp_all only [lt_self_iff_false, Nat.zero_lt_succ, and_self, or_true, iff_true, gt_iff_lt]
               exact this
 
--- #eval Multiset.ofList [1,2,2]
+#eval Multiset.ofList [1,2,2] = {2,1,2}
 #eval ack_mset [1, 2] = {(2,1)}
-
 #eval Prod.Lex (· < ·) (· < ·) (1,2) (3,0)
 #eval [1,2,3,4,5,6,7].map (λ x => x + 1)
--- [2, 3, 4, 5, 6, 7, 8]
