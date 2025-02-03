@@ -2,6 +2,10 @@ import Mathlib.Data.Multiset.DershowitzManna
 -- import Mathlib.Order.RelClasses
 import Mathlib.Data.Prod.Lex
 
+#print axioms Multiset.instWellFoundedisDershowitzMannaLT
+-- #axiom_blame
+
+-- Example 1: Ackermann's function
 -- The `termination_by` clause instructs Lean to use a lexicographic order on the natural numbers
 -- https://leanprover.github.io/theorem_proving_in_lean4/induction_and_recursion.html
 def ack : ℕ → ℕ → ℕ
@@ -24,9 +28,9 @@ instance : WellFoundedLT (ℕ × ℕ) := by
   exact Prod.wellFoundedLT'
 
 -- This is where the `wellFounded_isDershowitzMannaLT` theorem is used.
-instance : WellFoundedRelation (List ℕ) where
-  rel := lt_ackstack
-  wf  := InvImage.wf ack_mset (Multiset.wellFounded_isDershowitzMannaLT)
+-- instance : WellFoundedRelation (List ℕ) where
+--   rel := lt_ackstack
+--   wf  := InvImage.wf ack_mset (Multiset.wellFounded_isDershowitzMannaLT)
 
 -- Asking whether it terminates is an instance of the halting problem, which is undecidable in general.
 def ackstack : List Nat → Nat
@@ -36,9 +40,9 @@ def ackstack : List Nat → Nat
   | [m] => m
   | [] => 0
 termination_by
-  L => L
+  L => (InvImage.wf ack_mset (Multiset.wellFounded_isDershowitzMannaLT) : WellFounded lt_ackstack).wrap L
 decreasing_by
-  · unfold lt_ackstack
+  · unfold WellFounded.wrap
     cases L
     case nil =>
       have : ack_mset [n + 1] = {} := by simp [ack_mset]
@@ -72,7 +76,7 @@ decreasing_by
           Multiset.mem_cons, exists_eq_or_imp, exists_eq_left, l']
           have := @Prod.Lex.lt_iff ℕ ℕ _ _ (a, n + 1) (a + 1, 0)
           aesop
-  · unfold lt_ackstack
+  · unfold WellFounded.wrap
     simp_rw [ack_mset] at *
     unfold Multiset.IsDershowitzMannaLT
     refine ⟨Multiset.ofList (List.map (fun x => (x + 1, 0)) L), {(m, 1)}, {(m + 1, 0)}, ?_ ⟩
@@ -93,7 +97,7 @@ decreasing_by
         have := @Prod.Lex.lt_iff ℕ ℕ _ _ (m, 1) (m + 1, 0)
         aesop
   · simp
-    unfold lt_ackstack
+    unfold WellFounded.wrap
     simp_rw [ack_mset] at *
     cases L
     case nil =>
@@ -146,3 +150,6 @@ decreasing_by
 #eval ack_mset [1, 2] = {(2,1)}
 #eval Prod.Lex (· < ·) (· < ·) (1,2) (3,0)
 #eval [1,2,3,4,5,6,7].map (λ x => x + 1)
+
+
+-- Example 2:
