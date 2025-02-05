@@ -1,6 +1,8 @@
 import Mathlib.Data.Multiset.DershowitzManna
 -- import Mathlib.Order.RelClasses
 import Mathlib.Data.Prod.Lex
+import Mathlib.Data.DFinsupp.WellFounded
+import Mathlib.Data.Finsupp.Lex
 
 #print axioms Multiset.instWellFoundedisDershowitzMannaLT
 -- #axiom_blame
@@ -80,22 +82,20 @@ decreasing_by
     simp_rw [ack_mset] at *
     unfold Multiset.IsDershowitzMannaLT
     refine ⟨Multiset.ofList (List.map (fun x => (x + 1, 0)) L), {(m, 1)}, {(m + 1, 0)}, ?_ ⟩
-    repeat constructor -- how does this work again?
+    repeat' constructor -- how does this work again?
     simp
-    constructor
     · let l := Multiset.ofList (List.map (fun x => (x + 1, 0)) L)
       change (m, 1) ::ₘ l = l + {(m, 1)}
       simp [Multiset.singleton_add, add_comm]
-    · constructor
-      · let l := Multiset.ofList (List.map (fun x => (x + 1, 0)) L)
-        change (m + 1, 0) ::ₘ l = l + {(m + 1, 0)}
-        rw [← Multiset.singleton_add]
-        simp [add_comm]
-      · intro y y_in
-        refine ⟨(m + 1, 0), ?_⟩
-        simp_all only [Multiset.mem_singleton, true_and]
-        have := @Prod.Lex.lt_iff ℕ ℕ _ _ (m, 1) (m + 1, 0)
-        aesop
+    · let l := Multiset.ofList (List.map (fun x => (x + 1, 0)) L)
+      change (m + 1, 0) ::ₘ l = l + {(m + 1, 0)}
+      rw [← Multiset.singleton_add]
+      simp [add_comm]
+    · intro y y_in
+      refine ⟨(m + 1, 0), ?_⟩
+      simp_all only [Multiset.mem_singleton, true_and]
+      have := @Prod.Lex.lt_iff ℕ ℕ _ _ (m, 1) (m + 1, 0)
+      aesop
   · simp
     unfold WellFounded.wrap
     simp_rw [ack_mset] at *
@@ -134,17 +134,9 @@ decreasing_by
             refine ⟨(m + 1, n + 1), ?_ ⟩
             simp_all only [List.map_cons, Multiset.cons_coe, Multiset.insert_eq_cons, Multiset.mem_cons,
               Multiset.mem_singleton, true_and, l']
-            cases y_in with
-            | inl h =>
-              subst h
-              have := @Prod.Lex.lt_iff ℕ ℕ _ _ (m + 1, n) (m + 1, n + 1)
-              simp_all only [lt_self_iff_false, Nat.lt_add_one, and_self, or_true, iff_true, gt_iff_lt]
-              exact this
-            | inr h_1 =>
-              subst h_1
-              have := @Prod.Lex.lt_iff ℕ ℕ _ _ (m + 1, 0) (m + 1, n + 1)
-              simp_all only [lt_self_iff_false, Nat.zero_lt_succ, and_self, or_true, iff_true, gt_iff_lt]
-              exact this
+            have := Prod.Lex.lt_iff (m + 1, n) (m + 1, n + 1)
+            have := Prod.Lex.lt_iff (m + 1, 0) (m + 1, n + 1)
+            cases y_in <;> aesop
 
 #eval Multiset.ofList [1,2,2] = {2,1,2}
 #eval ack_mset [1, 2] = {(2,1)}
@@ -152,4 +144,42 @@ decreasing_by
 #eval [1,2,3,4,5,6,7].map (λ x => x + 1)
 
 
--- Example 2:
+-- Example 2: Showing the well-foundedness of a term rewriting system.
+
+inductive mytype
+| nat (n : ℕ)
+-- | boolean (b : Bool)
+-- | string (s : String)
+
+open mytype
+#check nat 2
+-- #check boolean True
+-- #check string "hi"
+
+def mytype_le : mytype → mytype → Prop
+| (nat n₁), (nat n₂) => n₁ ≤ n₂
+
+-- | (boolean b₁), (boolean b₂) => b₁ → b₂  -- Interpreting `false ≤ true`
+-- | (string s₁), (string s₂) => s₁.isPrefixOf s₂  -- Lexicographic order
+-- | _, _ => false  -- Different types are unrelated
+
+instance decidable_mytype_le : ∀ (a b : mytype), Decidable (mytype_le a b) := by
+  rintro ⟨a⟩ ⟨b⟩
+
+  simp [mytype_le]
+  infer_instance
+
+  -- by_cases a ≤ b
+  -- · apply isTrue; assumption
+  -- · apply isFalse; assumption
+
+
+
+
+
+-- sorry
+#print List.isPrefixOf
+
+#eval mytype_le (nat 2) (nat 7)
+
+-- Example 3: Differentiation?
