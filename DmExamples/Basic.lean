@@ -14,7 +14,20 @@ def ack : ℕ → ℕ → ℕ
   | 0,   y   => y+1
   | x+1, 0   => ack x 1
   | x+1, y+1 => ack x (ack (x+1) y)
-termination_by x y => (x, y)
+termination_by x1 y1 => (x1, y1)
+decreasing_by
+  -- all_goals
+  --   try (apply Prod.Lex.left; omega)
+  --   try (apply Prod.Lex.right; omega)
+
+  · -- have := @Prod.Lex.lt_iff ℕ ℕ _ _ (x, 1) (x + 1, 0)
+    apply Prod.Lex.left 1 0
+    exact Nat.lt_add_one x
+  · apply Prod.Lex.right
+    omega
+  · simp_wf
+    apply Prod.Lex.left
+    omega
 #eval ack 3 2
 
 def ack_mset : List ℕ → Multiset (ℕ × ℕ)
@@ -142,8 +155,13 @@ decreasing_by
 #eval ack_mset [1, 2] = {(2,1)}
 #eval Prod.Lex (· < ·) (· < ·) (1,2) (3,0)
 #eval [1,2,3,4,5,6,7].map (λ x => x + 1)
-
-
+#eval ackstack [2,1,2] = ackstack [1,1,0,2]
+#eval ackstack [1,1,0,2] = ackstack [0,1,0,0,2]
+#eval ackstack [0,1,0,0,2] = ackstack [1,0,0,0,2]
+#eval ackstack [1,0,0,0,2] = ackstack [2,0,0,2]
+#eval ackstack [2,0,0,2] = ackstack [3,0,2]
+#eval ackstack [3,0,2] = ackstack [4,2]
+#eval ackstack [4,2] = 11
 -- Example 2: Showing the well-foundedness of a term rewriting system.
 
 inductive mytype
