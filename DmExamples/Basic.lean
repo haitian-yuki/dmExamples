@@ -34,7 +34,7 @@ def ack_mset : List ℕ → Multiset (ℕ × ℕ)
   | [_] => {}
   | z :: y :: L => (y,z) ::ₘ Multiset.ofList (L.map (λ x => (x+1, 0)))
 
-#eval ack_mset [1,3,2,3,4,5,6]
+#eval ack_mset [1,7,2,3,4,5,6]
 
 def lt_ackstack (L1 : List ℕ) (L2 : List ℕ) :=
   @Multiset.IsDershowitzMannaLT _ (Prod.Lex.preorder _ _) (ack_mset L1) (ack_mset L2)
