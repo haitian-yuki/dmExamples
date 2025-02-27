@@ -1,9 +1,9 @@
 import Mathlib.Data.Multiset.DershowitzManna
--- import Mathlib.Order.RelClasses
 import Mathlib.Data.Prod.Lex
 import Mathlib.Data.DFinsupp.WellFounded
 import Mathlib.Data.Finsupp.Lex
 
+-- This checks the axioms used by the Wellfounded instance of dm-ordering
 #print axioms Multiset.instWellFoundedisDershowitzMannaLT
 -- #axiom_blame
 
@@ -28,7 +28,10 @@ decreasing_by
   · simp_wf
     apply Prod.Lex.left
     omega
+
 #eval ack 3 2
+
+
 def ack_mset : List ℕ → Multiset (ℕ × ℕ)
   | []  => {}
   | [_] => {}
@@ -55,7 +58,7 @@ def ackstack : List Nat → Nat
   | (n + 1) :: (m + 1) :: L => ackstack (n :: (m + 1) :: m :: L)
   | [m] => m
   | [] => 0
-termination_by
+termination_by -- Can we not do this directly on multisets?
   L => (InvImage.wf ack_mset (Multiset.wellFounded_isDershowitzMannaLT) : WellFounded lt_ackstack).wrap L
 decreasing_by
   · unfold WellFounded.wrap
